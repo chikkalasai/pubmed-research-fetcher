@@ -52,7 +52,7 @@ pip install -r requirements.txt
 To fetch PubMed papers based on a query, run:
 
 ```sh
-python -m src.papers_fetcher.cli "machine learning"
+python -m papers_fetcher.cli "machine learning" -d
 ```
 
 Replace `"machine learning"` with your desired search term.
