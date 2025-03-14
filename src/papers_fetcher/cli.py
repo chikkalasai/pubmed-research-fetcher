@@ -4,20 +4,18 @@ from papers_fetcher.fetch import fetch_paper_ids, fetch_paper_details
 from papers_fetcher.filter import filter_academic_authors
 
 def save_to_csv(papers):
-    with open("papers.csv", "w", newline="") as csvfile:
-        fieldnames = ["title", "authors", "journal", "year", "url"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
+    import csv
+    with open("papers.csv", mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=["title", "authors", "journal", "year"])
         writer.writeheader()
+
         for paper in papers:
-            # Ensure authors are properly extracted
-            authors = ", ".join([author["name"] for author in paper["authors"]]) if isinstance(paper["authors"], list) else ""
+            # Use .get() to handle potential missing keys
             writer.writerow({
-                "title": paper["title"],
-                "authors": authors,
-                "journal": paper["journal"],
-                "year": paper["year"],
-                "url": paper["url"]
+                "title": paper.get("title", "N/A"),
+                "authors": paper.get("authors", "N/A"),
+                "journal": paper.get("journal", "N/A"),  # Safe handling
+                "year": paper.get("year", "N/A"),
             })
 
 
