@@ -45,7 +45,9 @@ def main():
         print(f"Results saved to papers.csv")
     else:
         for paper in papers:
-            print(f"Title: {paper['title']}\nAuthors: {', '.join(paper['authors'])}\nSource: {paper['source']}\nPub Date: {paper['pubdate']}\n")
+            authors = [author["name"] if isinstance(author, dict) and "name" in author else str(author) for author in paper["authors"]]
+            print(f"Title: {paper['title']}\nAuthors: {', '.join(authors)}\nSource: {paper['source']}\nPub Date: {paper['pubdate']}\n")
+
 
 if __name__ == "__main__":
     main()
