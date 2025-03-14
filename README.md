@@ -78,3 +78,8 @@ This project is licensed under the MIT License.
 
 ## Contributions
 Feel free to open an issue or submit a pull request to improve this project!
+
+
+
+##The papera csv is in the directore
+pubmed-research-fetcher/src/papers.csv
