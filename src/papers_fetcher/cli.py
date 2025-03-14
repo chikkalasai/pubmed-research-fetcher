@@ -3,19 +3,23 @@ import csv
 from papers_fetcher.fetch import fetch_paper_ids, fetch_paper_details
 from papers_fetcher.filter import filter_academic_authors
 
-def save_to_csv(papers, filename="papers.csv"):
-    """Save paper details to a CSV file."""
-    with open(filename, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=["id", "title", "authors", "source", "pubdate"])
+def save_to_csv(papers):
+    with open("papers.csv", "w", newline="") as csvfile:
+        fieldnames = ["title", "authors", "journal", "year", "url"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
         writer.writeheader()
         for paper in papers:
+            # Ensure authors are properly extracted
+            authors = ", ".join([author["name"] for author in paper["authors"]]) if isinstance(paper["authors"], list) else ""
             writer.writerow({
-                "id": paper["id"],
                 "title": paper["title"],
-                "authors": ", ".join(paper["authors"]),
-                "source": paper["source"],
-                "pubdate": paper["pubdate"]
+                "authors": authors,
+                "journal": paper["journal"],
+                "year": paper["year"],
+                "url": paper["url"]
             })
+
 
 def main():
     parser = argparse.ArgumentParser(description="Fetch and filter PubMed research papers.")
