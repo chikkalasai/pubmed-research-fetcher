@@ -4,20 +4,21 @@ from papers_fetcher.fetch import fetch_paper_ids, fetch_paper_details
 from papers_fetcher.filter import filter_academic_authors
 
 def save_to_csv(papers):
-    with open("papers.csv", "w", newline="", encoding="utf-8") as csvfile:
+    with open("papers.csv", "w", newline="", encoding="utf-8-sig") as csvfile:
         fieldnames = ["title", "authors", "journal", "year", "url"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
         for paper in papers:
-            # Ensure authors are properly extracted
-            if isinstance(paper.get("authors"), list):
-                authors = ", ".join([author.get("name", "Unknown") for author in paper["authors"]])
+            title = paper.get("title", "Unknown")
+            
+            # Ensure authors are extracted properly
+            authors_list = paper.get("authors", [])
+            if isinstance(authors_list, list):
+                authors = ", ".join([author.get("name", "Unknown") for author in authors_list])
             else:
                 authors = "Unknown"
                 
-            # Get values for each field, use "Unknown" if the key is missing
-            title = paper.get("title", "Unknown")
             journal = paper.get("journal", "Unknown")
             year = paper.get("year", "Unknown")
             url = paper.get("url", "Unknown")
@@ -49,17 +50,31 @@ def main():
         print("No detailed results found. Check your API response.")
         return
 
+    # Debugging: Print sample data
+    print("\n✅ Sample Output:")
+    for paper in papers[:3]:  # Print only first 3 for checking
+        print(paper)
+
     if args.filter:
         print("Filtering non-academic authors...")
         papers = filter_academic_authors(papers)
 
     if args.download:
         save_to_csv(papers)
-        print(f"Results saved to papers.csv")
+        print(f"✅ Results saved to papers.csv")
     else:
         for paper in papers:
-            authors = [author["name"] if isinstance(author, dict) and "name" in author else str(author) for author in paper["authors"]]
-            print(f"Title: {paper['title']}\nAuthors: {', '.join(authors)}\nSource: {paper['source']}\nPub Date: {paper['pubdate']}\n")
+            title = paper.get("title", "Unknown")
+            authors = [author["name"] if isinstance(author, dict) and "name" in author else str(author) for author in paper.get("authors", [])]
+            journal = paper.get("journal", "Unknown")
+            year = paper.get("year", "Unknown")
+            url = paper.get("url", "Unknown")
+
+            print(f"\n📌 Title: {title}")
+            print(f"👨‍🔬 Authors: {', '.join(authors)}")
+            print(f"📖 Journal: {journal}")
+            print(f"📅 Year: {year}")
+            print(f"🔗 URL: {url}\n")
 
 if __name__ == "__main__":
     main()
