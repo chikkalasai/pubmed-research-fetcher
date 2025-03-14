@@ -57,6 +57,11 @@ python -m papers_fetcher.cli "machine learning" -d
 
 Replace `"machine learning"` with your desired search term.
 
+Here in termianl we got output and 
+The csv file saved on the your directoery
+##The papera csv is in the directore
+pubmed-research-fetcher/src/papers.csv
+
 ## Version Control
 This project uses Git for version control. To push your changes:
 
@@ -81,5 +86,4 @@ Feel free to open an issue or submit a pull request to improve this project!
 
 
 
-##The papera csv is in the directore
-pubmed-research-fetcher/src/papers.csv
+
