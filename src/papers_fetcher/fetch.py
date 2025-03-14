@@ -40,26 +40,45 @@ def fetch_paper_details(paper_ids):
     response = requests.get(DETAILS_URL, params=params)
     response.raise_for_status()
     data = response.json()
-    
+
+    print("\n✅ DEBUG: Raw API Response:")
+    print(json.dumps(data, indent=4))  # Debugging: Print full API response
+
     papers = []
     for paper_id in paper_ids:
         if paper_id in data["result"]:
             paper_info = data["result"][paper_id]
+
+            title = paper_info.get("title", "Unknown")
+
+            # Fixing journal extraction
+            journal = paper_info.get("fulljournalname", paper_info.get("source", "Unknown"))
+
+            # Fixing year extraction (extracting only the year from pubdate)
+            pubdate = paper_info.get("pubdate", "Unknown")
+            year = pubdate.split()[0] if pubdate != "Unknown" else "Unknown"
+
+            url = f"https://pubmed.ncbi.nlm.nih.gov/{paper_id}/"
+
             papers.append({
                 "id": paper_id,
-                "title": paper_info.get("title", "N/A"),
+                "title": title,
                 "authors": [
                     {"name": author.get("name", "Unknown"), "affiliation": author.get("affiliation", "")}
                     for author in paper_info.get("authors", [])
                 ],
-                "source": paper_info.get("source", "N/A"),
-                "pubdate": paper_info.get("pubdate", "N/A")
+                "journal": journal,  # ✅ Fixed journal mapping
+                "year": year,        # ✅ Fixed year extraction
+                "url": url
             })
-    
+
+    print("\n✅ DEBUG: Extracted Data:")
+    for paper in papers[:5]:  # Print first 5 for debugging
+        print(json.dumps(paper, indent=4))
+
     return papers
 
 if __name__ == "__main__":
     query = "machine learning"
     paper_ids = fetch_paper_ids(query)
     papers = fetch_paper_details(paper_ids)
-    print(json.dumps(papers, indent=4))
