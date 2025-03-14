@@ -1,61 +1,45 @@
-import argparse
-import csv
-from fetch import fetch_paper_ids, fetch_paper_details
-from filter import filter_academic_authors
+import re
 
-def save_to_csv(papers):
-    with open("papers.csv", "w", newline="", encoding="utf-8") as csvfile:
-        fieldnames = ["title", "authors", "journal", "year", "url"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+# Define keywords that indicate a non-academic affiliation
+NON_ACADEMIC_KEYWORDS = ["Inc.", "Corp.", "Ltd.", "LLC", "Labs", "Company", "Technologies"]
+EMAIL_PATTERNS = [r".*@.*(google|microsoft|ibm|amazon|facebook|apple)\.com"]
 
-        for paper in papers:
-            title = paper.get("title", "Unknown")
-            authors = ", ".join([author.get("name", "Unknown") for author in paper.get("authors", [])])
-            journal = paper.get("journal", "Unknown")
-            year = paper.get("year", "Unknown")
-            url = paper.get("url", "Unknown")
+def is_academic_author(author_affiliation):
+    """Check if an author is from an academic institution."""
+    if not author_affiliation:  # Handle missing affiliation
+        return True  # Assume academic if unknown
 
-            print(f"DEBUG: {title}, {authors}, {journal}, {year}, {url}")  # Debug print
+    if any(keyword in author_affiliation for keyword in NON_ACADEMIC_KEYWORDS):
+        return False
+    if any(re.match(pattern, author_affiliation) for pattern in EMAIL_PATTERNS):
+        return False
+    return True
 
-            writer.writerow({
-                "title": title,
-                "authors": authors,
-                "journal": journal,
-                "year": year,
-                "url": url
-            })
-
-def main():
-    parser = argparse.ArgumentParser(description="Fetch and filter PubMed research papers.")
-    parser.add_argument("query", type=str, help="Search query for PubMed articles.")
-    parser.add_argument("-d", "--download", action="store_true", help="Save results to a CSV file.")
-    parser.add_argument("-f", "--filter", action="store_true", help="Filter non-academic authors.")
-
-    args = parser.parse_args()
-    
-    print(f"Fetching papers for query: {args.query}")
-    paper_ids = fetch_paper_ids(args.query)
-    if not paper_ids:
-        print("No papers found. Try a different query.")
-        return
-    
-    papers = fetch_paper_details(paper_ids)
-    if not papers:
-        print("No detailed results found. Check your API response.")
-        return
-
-    if args.filter:
-        print("Filtering non-academic authors...")
-        papers = filter_academic_authors(papers)
-
-    if args.download:
-        save_to_csv(papers)
-        print(f"Results saved to papers.csv")
-    else:
-        for paper in papers:
-            authors = [author["name"] if isinstance(author, dict) and "name" in author else str(author) for author in paper["authors"]]
-            print(f"Title: {paper['title']}\nAuthors: {', '.join(authors)}\nJournal: {paper['journal']}\nYear: {paper['year']}\nURL: {paper['url']}\n")
+def filter_academic_authors(papers):
+    """Filter out non-academic authors based on affiliations."""
+    for paper in papers:
+        new_authors = []
+        for author in paper.get("authors", []):
+            affiliation = author.get("affiliation", "")  # Extract affiliation safely
+            if is_academic_author(affiliation):
+                new_authors.append(author["name"])  # Keep only name
+        
+        paper["authors"] = new_authors  # Update authors list
+    return papers
 
 if __name__ == "__main__":
-    main()
+    sample_papers = [
+        {
+            "id": "12345",
+            "title": "Deep Learning in Medicine",
+            "authors": [
+                {"name": "Alice", "affiliation": "MIT"},
+                {"name": "Bob", "affiliation": "Google"},
+                {"name": "Charlie", "affiliation": "Harvard"}
+            ],
+            "source": "Nature",
+            "pubdate": "2024-01-10"
+        }
+    ]
+    filtered_papers = filter_academic_authors(sample_papers)
+    print(filtered_papers)
