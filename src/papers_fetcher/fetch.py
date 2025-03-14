@@ -40,11 +40,14 @@ def fetch_paper_details(paper_ids):
     response = requests.get(DETAILS_URL, params=params)
     response.raise_for_status()
     data = response.json()
-    
+
+    print(json.dumps(data, indent=4))  # Debugging: Print the full API response
+
     papers = []
     for paper_id in paper_ids:
         if paper_id in data["result"]:
             paper_info = data["result"][paper_id]
+
             papers.append({
                 "id": paper_id,
                 "title": paper_info.get("title", "N/A"),
@@ -52,10 +55,11 @@ def fetch_paper_details(paper_ids):
                     {"name": author.get("name", "Unknown"), "affiliation": author.get("affiliation", "")}
                     for author in paper_info.get("authors", [])
                 ],
-                "source": paper_info.get("source", "N/A"),
-                "pubdate": paper_info.get("pubdate", "N/A")
+                "journal": paper_info.get("fulljournalname", paper_info.get("source", "Unknown")),  # Ensure correct API key
+                "year": paper_info.get("pubdate", "Unknown").split()[0],  # Extract only the year
+                "url": f"https://pubmed.ncbi.nlm.nih.gov/{paper_id}/"
             })
-    
+
     return papers
 
 if __name__ == "__main__":
